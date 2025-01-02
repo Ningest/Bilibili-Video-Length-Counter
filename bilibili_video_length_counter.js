@@ -171,7 +171,7 @@ function count_later(){
 			state = true;
 		}
 	}
-	calculateTotalDuration(durations,"计算值后模式");
+	calculateTotalDuration(durations,"计算之后模式");
 }
 
 //计算全部
