@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         B站/哔哩哔哩时长统计
+// @name         B站/哔哩哔哩/bilibili多视频时长统计
 // @namespace    https://github.com/Ningest/Bilibili-Video-Length-Counter
 // @version      1.0.1
 // @description  当观看的视频选集有多个时，可以方便统计多个视频的总时长。按下【Ctrl + Alt + N】开启/关闭统计面板
