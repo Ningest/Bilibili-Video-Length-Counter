@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         B站/哔哩哔哩/bilibili多视频总时长统计
 // @namespace    https://github.com/Ningest/Bilibili-Video-Length-Counter
-// @version      1.0.2
-// @description  当观看的视频选集有多个时，可以方便统计多个视频的总时长。按下【Ctrl + Alt + N】开启/关闭统计面板
+// @version      1.0.3
+// @description  观看的哔哩哔哩视频存在多个选集时，可以方便统计多个视频的总时长。按下【Ctrl + Alt + N】开启/关闭统计面板，查看说明，访问https://github.com/Ningest/Bilibili-Video-Length-Counter
 // @author       ningest
 // @match        https://www.bilibili.com/video/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=bilibili.com
@@ -79,7 +79,14 @@ function init(){
 			displayPopup(displayPopupState);
 	    }
 	});
-	console.log('按下【Ctrl + Alt + N】开启/关闭统计面板');
+	console.log(
+	  '%cBilibili-Video-Length-Counter：按下【Ctrl + Alt + N】开启/关闭统计面板',
+	  'font-size: 16px; color: #80a492;' // 设置字体大小和颜色
+	);
+	console.log(
+	  '%cBilibili-Video-Length-Counter：查看说明，访问https://github.com/Ningest/Bilibili-Video-Length-Counter',
+	  'font-size: 16px; color: #80a492;' // 设置字体大小和颜色
+	);
 }
 
 
