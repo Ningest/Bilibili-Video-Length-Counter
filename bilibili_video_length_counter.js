@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         B站/哔哩哔哩/bilibili多视频总时长统计
 // @namespace    https://github.com/Ningest/Bilibili-Video-Length-Counter
-// @version      1.0.3
+// @version      1.0.4
 // @description  观看的哔哩哔哩视频存在多个选集时，可以方便统计多个视频的总时长。按下【Ctrl + Alt + N】开启/关闭统计面板，查看说明，访问https://github.com/Ningest/Bilibili-Video-Length-Counter
 // @author       ningest
 // @match        https://www.bilibili.com/video/*
@@ -72,8 +72,9 @@ window.onload=function(){
 //初始化
 function init(){
 	document.addEventListener('keydown', function(event) {
+	    // 感谢@JerryYang-30同学在此处发现的错误并帮助改正
 	    // 检查 Ctrl, Alt 和 N 键是否都被按下
-	    if (event.ctrlKey && event.altKey && event.key === 'n' || event.code === 'KeyN') {
+	    if (event.ctrlKey && event.altKey && (event.key === 'n' || event.code === 'KeyN')) {
 	        event.preventDefault();
 			displayPopupState = !displayPopupState;
 			displayPopup(displayPopupState);
