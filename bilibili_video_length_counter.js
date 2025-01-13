@@ -64,6 +64,7 @@ const htmlString = `
 	        </div>
 	    </div>
 	</div>`;
+var checkInterval;
 const cssTextString = `
 		.popup-close-btn {
 		    width: 20px;
@@ -112,7 +113,7 @@ const cssTextString = `
 	// 显示文字“总时长”左侧的空白暂定为40，可在.video-info-duration {margin-left: 40px;}中修改
 window.onload=function(){
 	init();
-	DispInit();
+	checkInterval = setInterval(DispInit, 100);
 }
 
 //初始化
@@ -138,45 +139,48 @@ function init(){
 
 // 创建显示区域元素
 function DispInit(){
-	// 添加css样式
-    addCssClass(cssTextString);
-    // 找到视频栏的信息栏
-    const header = document.querySelector('div.video-pod__header');
-	if(header){
-    	// 创建显示区域div并添加到信息栏
-    	const headerBottom = header.querySelector('div.header-bottom');
-    	var dispDiv = document.createElement('div');
-    	dispDiv.className = 'header-info';
-	    if (headerBottom) header.insertBefore(dispDiv, headerBottom);
-	    else header.appendChild(dispDiv);
-    // 总时长
-    	// 创建总时长div并添加到显示区域
-    	var durationDiv = document.createElement('div');
-    	durationDiv.className = 'video-info-duration';
-    	dispDiv.appendChild(durationDiv);
-	    // 读取全部时长信息
-	    const items = document.querySelectorAll('.video-pod__item');
-	    let durations = [];
-	    items.forEach((item, index) => {
-	        durations.push(item.querySelector('.stat-item.duration').textContent.trim())
-	    });
-	    // 显示总时长，这里对时长计算函数进行了改动
-	    durationDiv.innerHTML = '总时长：' + calculateTotalDuration(durations);
-	// 按钮
-		// 创建按钮的div
-		var openDiv = document.createElement('div');
-		openDiv.className = 'video-info-right';
-		dispDiv.appendChild(openDiv);
-		// 创建按钮
-		var openBtn = document.createElement('button');
-		openBtn.textContent = '详细统计';
-		openBtn.className = 'popup-open-btn';
-		openBtn.title = '快捷键：Ctrl+Alt+N';
-		openDiv.appendChild(openBtn);
-		// 添加点击事件监听器
-		openBtn.addEventListener('click', function() {TableOpen();});
+    if(document.querySelector('.bili-avatar').querySelector('.bili-avatar-img.bili-avatar-face.bili-avatar-img-radius')){
+		// 添加css样式
+	    addCssClass(cssTextString);
+	    // 找到视频栏的信息栏
+	    const header = document.querySelector('div.video-pod__header');
+		if(header){
+	    	// 创建显示区域div并添加到信息栏
+	    	const headerBottom = header.querySelector('div.header-bottom');
+	    	var dispDiv = document.createElement('div');
+	    	dispDiv.className = 'header-info';
+		    if (headerBottom) header.insertBefore(dispDiv, headerBottom);
+		    else header.appendChild(dispDiv);
+	    // 总时长
+	    	// 创建总时长div并添加到显示区域
+	    	var durationDiv = document.createElement('div');
+	    	durationDiv.className = 'video-info-duration';
+	    	dispDiv.appendChild(durationDiv);
+		    // 读取全部时长信息
+		    const items = document.querySelectorAll('.video-pod__item');
+		    let durations = [];
+		    items.forEach((item, index) => {
+		        durations.push(item.querySelector('.stat-item.duration').textContent.trim())
+		    });
+		    // 显示总时长，这里对时长计算函数进行了改动
+		    durationDiv.innerHTML = '总时长：' + calculateTotalDuration(durations);
+		// 按钮
+			// 创建按钮的div
+			var openDiv = document.createElement('div');
+			openDiv.className = 'video-info-right';
+			dispDiv.appendChild(openDiv);
+			// 创建按钮
+			var openBtn = document.createElement('button');
+			openBtn.textContent = '详细统计';
+			openBtn.className = 'popup-open-btn';
+			openBtn.title = '快捷键：Ctrl+Alt+N';
+			openDiv.appendChild(openBtn);
+			// 添加点击事件监听器
+			openBtn.addEventListener('click', function() {TableOpen();});
+            // 取消计时器
+            clearInterval(checkInterval);
+		}
 	}
-
 }
 
 //用于添加css样式的函数
