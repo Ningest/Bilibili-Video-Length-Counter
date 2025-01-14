@@ -7,22 +7,21 @@
 // @match        https://www.bilibili.com/video/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=bilibili.com
 // @grant        none
+// @run-at       document-end
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    // Your code here...
-
-
-
-
-    var itemList = [];//存入对象->index索引,title课程标题,duration课程时长,scroller是否为当前播放状态
+var itemList = [];//存入对象->index索引,title课程标题,duration课程时长,scroller是否为当前播放状态
 var inject = false;//注入html片段状态
 var displayPopupState = false;//弹出层显示状态;
 const htmlString = `
 	<div id="ningest_jessie1314" style="display: none; z-index: 2147483647; width: 100%;height: 100%;position: fixed;top: 0px;left: 0px; background-color: rgba(0, 0, 0, 0.2)">
 	    <div style="background-color: #fff; width: 600px; height: 100%; margin: 0 auto;padding: 5px; box-sizing: border-box;">
+	    	<div style="text-align: right; width: 100%;">
+				<button class="popup-close-btn">×</button>
+			</div>
 	        <div style="margin-bottom: 20px;width: 100%; text-align: center;">
 	            <span id="mode_str" style="margin-right: 10px;color: #666;">未计算</span>
 	            <span style="margin-right: 10px;color: #666;">总时长</span>
@@ -65,8 +64,56 @@ const htmlString = `
 	        </div>
 	    </div>
 	</div>`;
+var checkInterval;
+const cssTextString = `
+		.popup-close-btn {
+		    width: 20px;
+		    height: 20px;
+		    border-radius: 6px;
+		    font-size: 14px;
+		    text-align: center;
+		    border-style: none;
+		    background-color: #f1f2f3;
+		    transition: background-color 0.3s ease;
+		}
+		.popup-close-btn:hover {
+		    background-color: #ffa6a6;
+		}
+		.header-info {
+			display: flex;
+			margin-top: 10px;
+			margin-bottom: 0px;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.video-info-duration {
+			display: flex;
+			font-size: 15px;
+			color: #9499a0;
+			margin-left: 40px;
+		}
+		.popup-open-btn {
+			width: 72px;
+			height: 24px;
+			font-size: 13px;
+			color: #61666D;
+			border-style: none;
+			border-color: #00aeec;
+			border-width: 1px;
+			background-color: #e3e5e7;
+			border-radius: 12px;
+			transition: background-color 0.3s ease, color 0.3s ease;
+		}
+		.popup-open-btn:hover {
+			background-color: #e8e9ea;
+			color: #00aeec;
+		}
+		`;
+	// justify-content: flex-start / flex-end / center / space-between / space-around / space-evenly;
+	// 显示文字“总时长”左侧的空白暂定为40，可在.video-info-duration {margin-left: 40px;}中修改
 window.onload=function(){
 	init();
+	checkInterval = setInterval(DispInit, 100);
 }
 
 //初始化
@@ -76,8 +123,8 @@ function init(){
 	    // 检查 Ctrl, Alt 和 N 键是否都被按下
 	    if (event.ctrlKey && event.altKey && (event.key === 'n' || event.code === 'KeyN')) {
 	        event.preventDefault();
-			displayPopupState = !displayPopupState;
-			displayPopup(displayPopupState);
+	        // displayPopupState的状态记录已转到displayPopup()、TableOpen()和TableClose()中实现
+			displayPopup();
 	    }
 	});
 	console.log(
@@ -90,23 +137,95 @@ function init(){
 	);
 }
 
-
-//是否显示弹出层
-function displayPopup(state){
-	if(!inject){
-		document.body.insertAdjacentHTML('beforeend', htmlString);
-		inject = true;
-	}
-	const ningest_jessie1314 = document.getElementById("ningest_jessie1314");
-	if(state){
-		ningest_jessie1314.style.display = 'block'
-		parseVideoPodItems();
-	}else{
-		ningest_jessie1314.style.display = 'none'
-        homing();
+// 创建显示区域元素
+function DispInit(){
+    if(document.querySelector('.bili-avatar').querySelector('.bili-avatar-img.bili-avatar-face.bili-avatar-img-radius')){
+		// 添加css样式
+	    addCssClass(cssTextString);
+	    // 找到视频栏的信息栏
+	    const header = document.querySelector('div.video-pod__header');
+		if(header){
+	    	// 创建显示区域div并添加到信息栏
+	    	const headerBottom = header.querySelector('div.header-bottom');
+	    	var dispDiv = document.createElement('div');
+	    	dispDiv.className = 'header-info';
+		    if (headerBottom) header.insertBefore(dispDiv, headerBottom);
+		    else header.appendChild(dispDiv);
+	    // 总时长
+	    	// 创建总时长div并添加到显示区域
+	    	var durationDiv = document.createElement('div');
+	    	durationDiv.className = 'video-info-duration';
+	    	dispDiv.appendChild(durationDiv);
+		    // 读取全部时长信息
+		    const items = document.querySelectorAll('.video-pod__item');
+		    let durations = [];
+		    items.forEach((item, index) => {
+		        durations.push(item.querySelector('.stat-item.duration').textContent.trim())
+		    });
+		    // 显示总时长，这里对时长计算函数进行了改动
+		    durationDiv.innerHTML = '总时长：' + calculateTotalDuration(durations);
+		// 按钮
+			// 创建按钮的div
+			var openDiv = document.createElement('div');
+			openDiv.className = 'video-info-right';
+			dispDiv.appendChild(openDiv);
+			// 创建按钮
+			var openBtn = document.createElement('button');
+			openBtn.textContent = '详细统计';
+			openBtn.className = 'popup-open-btn';
+			openBtn.title = '快捷键：Ctrl+Alt+N';
+			openDiv.appendChild(openBtn);
+			// 添加点击事件监听器
+			openBtn.addEventListener('click', function() {TableOpen();});
+            // 取消计时器
+            clearInterval(checkInterval);
+		}
 	}
 }
 
+//用于添加css样式的函数
+function addCssClass(cssRules) {
+	// 创建一个 <style> 元素
+	let style = document.createElement('style');
+	style.type = 'text/css';
+	// 修改其内部的css
+	if (style.styleSheet) style.styleSheet.cssText = cssRules;
+	else {
+	    style.appendChild(document.createDocumentFragment());
+	    style.innerHTML = cssRules;
+	}
+	// 将style元素添加到head中
+	document.head.appendChild(style);
+}
+
+//是否显示弹出层
+function displayPopup(){
+	// 为实现通过按钮控制，已将统计面板的打开和关闭改为独立函数
+	if(displayPopupState) TableClose();
+	else TableOpen();
+}
+// 打开统计面板（显示弹出层）
+function TableOpen(){
+	if(!inject){
+		// 插入统计面板html
+		document.body.insertAdjacentHTML('beforeend', htmlString);
+		// 添加关闭按钮的时间监听器
+		var closeButton = document.querySelector('button.popup-close-btn');
+		closeButton.addEventListener('click', function() {TableClose();});
+		// 记录是否已创建
+		inject = true;
+	}
+	const ningest_jessie1314 = document.getElementById("ningest_jessie1314");
+	ningest_jessie1314.style.display = 'block'
+	parseVideoPodItems();
+	displayPopupState = true;
+}
+// 关闭统计面板（隐藏弹出层）
+function TableClose(){
+	ningest_jessie1314.style.display = 'none'
+    homing();
+    displayPopupState = false;
+}
 
 // 创建并插入新行到tbody中
 function addTableRow(checkboxValueAndSecondTdText, thirdTdText, fourthTdText ,scrolled) {
@@ -282,24 +401,30 @@ function parseVideoPodItems() {
 	})
 }
 //计算数组【时长】中时长的总和,并设置mode为显示的模式文本=计算全部模式，计算之前模式，计算之后模式，计算选中模式，
+// 添加了格式为HH:MM:SS的返回值，用于在视频信息栏中显示总时长
 function calculateTotalDuration(durations,mode) {
-		// 初始化总秒数
-	    let totalSeconds = 0;
-	    // 遍历数组中的每个时长并转换为秒数后相加
-	    durations.forEach(duration => {
-	        const [minutes, seconds] = duration.split(':').map(Number);
-	        totalSeconds += minutes * 60 + seconds;
-	    });
-	    // 计算小时、分钟和秒
-	    const hours = Math.floor(totalSeconds / 3600);
-	    const minutes = Math.floor(totalSeconds / 60); // 总分钟数
-	    const seconds = totalSeconds % 60; // 剩余秒数
-		const remainingSecondsAfterHours = totalSeconds % 3600;
-		const minutes2 = Math.floor(remainingSecondsAfterHours / 60);
-	    // 格式化输出
-	    function padZero(num) {
-	        return num.toString().padStart(2, '0');
-	    }
+	// 初始化总秒数
+    let totalSeconds = 0;
+    // 遍历数组中的每个时长并转换为秒数后相加
+    durations.forEach(duration => {
+        const [minutes, seconds] = duration.split(':').map(Number);
+        totalSeconds += minutes * 60 + seconds;
+    });
+    // 计算小时、分钟和秒
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor(totalSeconds / 60); // 总分钟数
+    const seconds = totalSeconds % 60; // 剩余秒数
+	const remainingSecondsAfterHours = totalSeconds % 3600;
+	const minutes2 = Math.floor(remainingSecondsAfterHours / 60);
+    // 格式化输出
+    function padZero(num) {
+        return num.toString().padStart(2, '0');
+    }
+    if (mode === undefined) {
+		// 返回一个常用格式
+		return `${padZero(hours)}:${padZero(minutes2)}:${padZero(seconds)}`
+    }
+	else{
 	    // 第一种格式：HH:MM:SS
 	    const formatHMS = `${padZero(hours)}时${padZero(minutes2)}分${padZero(seconds)}秒`;
 	    // 第二种格式：总分钟数和秒数
@@ -311,6 +436,7 @@ function calculateTotalDuration(durations,mode) {
 		document.getElementById('hms_str').textContent = formatHMS;
 		document.getElementById('ms_str').textContent = formatMS;
 		document.getElementById('s_str').textContent = formatS;
+	}
 }
 //总时长归零
 function homing(){
