@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         B站/哔哩哔哩/bilibili多视频总时长统计
 // @namespace    https://github.com/Ningest/Bilibili-Video-Length-Counter
-// @version      1.0.5
+// @version      1.0.6
 // @description  观看的哔哩哔哩视频存在多个选集时，可以方便统计多个视频的总时长。按下【Ctrl + Alt + N】开启/关闭统计面板，查看说明，访问https://github.com/Ningest/Bilibili-Video-Length-Counter
 // @author       ningest
 // @match        https://www.bilibili.com/video/*
@@ -462,8 +462,8 @@ function empty_select(){
 //设置选中范围
 function set_scope(){
 	empty_select();
-	let min = 	document.getElementById('min_num').value;
-	let max = 	document.getElementById('max_num').value;
+	let min = Number(document.getElementById('min_num').value);
+	let max = Number(document.getElementById('max_num').value);
 	if(min>max){
 		let a = min;
 		min = max;
