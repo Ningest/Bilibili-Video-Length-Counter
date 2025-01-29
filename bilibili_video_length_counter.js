@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         B站/哔哩哔哩/bilibili多视频总时长统计
 // @namespace    https://github.com/Ningest/Bilibili-Video-Length-Counter
-// @version      1.0.4
+// @version      1.0.5
 // @description  观看的哔哩哔哩视频存在多个选集时，可以方便统计多个视频的总时长。按下【Ctrl + Alt + N】开启/关闭统计面板，查看说明，访问https://github.com/Ningest/Bilibili-Video-Length-Counter
 // @author       ningest
 // @match        https://www.bilibili.com/video/*
@@ -48,7 +48,7 @@ const htmlString = `
 	                <input id="max_num" type="number" style="width: 50%;text-align: center;" value="0"/>
 	            </div>
 	        </div>
-	        <div style="width: 100%;height: calc(100% - 120px); margin-top: 20px;overflow-y: auto;">
+	 	<div style="width: 100%;height: calc(100% - 130px); margin-top: 20px;overflow-y: auto;">
 	            <table style="width: 100%; text-align: center; border-collapse: collapse; border: 1px solid #000;">
 	                <thead>
 	                    <tr>
@@ -474,10 +474,8 @@ function set_scope(){
 		return;
 	}
 	let checkboxes = document.querySelectorAll('input.table_item_cbox[type="checkbox"]');
-	for(let i = 0; i < checkboxes.length; i++){
-		if(i >= min && i <= max){
-			checkboxes[i].checked = true;
-		}
+	for(let i=min; i<=max;i++){
+		checkboxes[i].checked = true;
 	}
 }
 
